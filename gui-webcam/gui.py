@@ -7,9 +7,9 @@ from PyQt5.QtGui import QPixmap, QImage, QIcon
 import sys
 
 class StartWindow(QMainWindow):
-    def __init__(self, cam_num = 0):
+    def __init__(self, yolo=None, cam_num = 0):
         super().__init__()
-        self.camera = Camera(cam_num)
+        self.camera = Camera(yolo, cam_num)
 
         self.init_gui()
         self.set_timer()
@@ -24,7 +24,7 @@ class StartWindow(QMainWindow):
         self.resize(window_width, window_height)
         self.setMinimumSize(QSize(window_width,window_height))
         self.setMaximumSize(QSize(window_width,window_height))
-        self.setWindowTitle("Zucchini")
+        self.setWindowTitle("yolo detection")
         # self.setWindowIcon(QIcon("icon.png"))
 
         self.centralWidget = QWidget(self)
@@ -51,9 +51,12 @@ class StartWindow(QMainWindow):
     def update_frame(self):
         ret, self.frame = self.camera.get_frame()
         if ret:
-            QImg = QImage(self.frame.data, self.frame.shape[1], self.frame.shape[0], QImage.Format_RGB888)
-            pixMap = QPixmap.fromImage(QImg)
-            self.label_img.setPixmap(pixMap)
+            try:
+                QImg = QImage(self.frame.data, self.frame.shape[1], self.frame.shape[0], QImage.Format_RGB888)
+                pixMap = QPixmap.fromImage(QImg)
+                self.label_img.setPixmap(pixMap)
+            except Exception as e:
+                self.label_img.setText(str(e))
         else:
             self.label_img.setText("Cannot load camera")
     

@@ -1,12 +1,14 @@
 import numpy as np
 import cv2
+from yolov3.utils import detect_webcam
 
 
 class Camera:
-    def __init__(self, cam_num):
+    def __init__(self, yolo=None, cam_num=0):
         self.cam_num = cam_num
         self.cap = None
         self.frame = None
+        self.yolo = yolo
 
     def initialize(self):
         self.cap = cv2.VideoCapture(self.cam_num)
@@ -15,12 +17,11 @@ class Camera:
     def get_frame(self):
         ret, self.frame = self.cap.read()
         if ret:
-            cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB, self.frame)
+            if self.yolo:
+                self.frame = detect_webcam(self.yolo, self.frame)
+            else:
+                cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB, self.frame)
         return (ret, self.frame)
-
-    #custom
-    def convert_frame(self):
-        pass
 
     def close(self):
         self.cap.release()
