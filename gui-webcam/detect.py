@@ -1,8 +1,14 @@
 import numpy as np
 import cv2
 
+from gui import WEIGHTS, CFG, H5
+
+print(WEIGHTS, CFG, H5)
+
 # yolo settings
-net = cv2.dnn.readNet("zuc/z-yolo.weights", "zuc/z-config.cfg")
+if WEIGHTS != '' and CFG != '':
+    net = cv2.dnn.readNet(WEIGHTS, CFG)
+
 layer_names = net.getLayerNames()
 output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 
@@ -42,7 +48,7 @@ def detect_zucchini(frame):
 
 
 if __name__ == '__main__':
-    vs = cv2.VideoCapture('zuc/z-video.avi')
+    vs = cv2.VideoCapture(0)
     if not vs.isOpened:
         print('Cannot load video')
         exit(0)

@@ -8,6 +8,10 @@ import sys
 
 import threading
 
+WEIGHTS = ""
+CFG = ""
+H5 = ""
+
 
 class StartWindow(QMainWindow):
     def __init__(self, cam_num = 0, test=False):
@@ -97,10 +101,16 @@ class StartWindow(QMainWindow):
 
     def start_detect(self):
         print("det")
+        WEIGHTS = self.weights
+        CFG = self.cfg
+        H5 = self.h5
+        self.camera.detect = True
 
     def record(self):
         print("rec")
         '''
+        [mpeg4 @ 000001c87838ac80] Invalid pts (4) <= last (4)
+        
         https://github.com/PyAV-Org/PyAV/issues/202
 
         self.camera.rec = False if self.camera.rec else True

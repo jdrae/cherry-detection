@@ -5,6 +5,8 @@ import time
 import os
 import threading
 
+from detect import detect_zucchini
+
 class Camera:
     def __init__(self, cam_num=0):
         self.cam_num = cam_num
@@ -15,6 +17,8 @@ class Camera:
         self.out = None
         self.rec= False
 
+        self.detect = False
+
     def initialize(self):
         self.cap = cv2.VideoCapture(self.cam_num)
         print("started")
@@ -23,6 +27,8 @@ class Camera:
         self.ret, self.frame = self.cap.read()
         if self.ret:
             cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB, self.frame)
+            if self.detect == True:
+                self.frame = detect_zucchini(self.frame)
             return (self.ret,self.frame)
         else:
             return (self.ret, None)
@@ -34,7 +40,6 @@ class Camera:
 
         
     def setOut(self):
-        print("record ready")
         if not os.path.exists("record\\"):
             os.makedirs("record\\")
         if self.out is None:
