@@ -6,6 +6,9 @@ from PyQt5.QtGui import QPixmap, QImage, QIcon
 
 import sys
 
+import threading
+
+
 class StartWindow(QMainWindow):
     def __init__(self, cam_num = 0, test=False):
         super().__init__()
@@ -77,7 +80,7 @@ class StartWindow(QMainWindow):
         self.btn_capture.clicked.connect(self.camera.capture)
         self.btn_record = QPushButton("record",self.centralWidget)
         self.btn_record.setGeometry(QRect(560, 630, 100, 30))
-        self.btn_record.clicked.connect(self.camera.record)
+        self.btn_record.clicked.connect(self.record)
 
     def select_file(self, ext):
         fname = QFileDialog.getOpenFileName(self, 'Open file', './', '*.'+ext)
@@ -95,10 +98,34 @@ class StartWindow(QMainWindow):
     def start_detect(self):
         print("det")
 
+    def record(self):
+        print("rec")
+        '''
+        https://github.com/PyAV-Org/PyAV/issues/202
+
+        self.camera.rec = False if self.camera.rec else True
+        print("recording...") if self.camera.rec else print("record stop")
+        text = "stop" if self.camera.rec else "record"
+        self.btn_record.setText(text)
+        
+        if self.camera.rec:
+            self.camera.setOut()
+        else:
+            if self.camera.out is not None:
+                self.camera.out.release()
+                self.camera.out = None
+        '''
+
+    def _record(self):
+        if self.camera.rec:
+            t1 = threading.Thread(target=self.camera.record, daemon=True)
+            t1.start()
+
     def set_timer(self):
         # timer to update frame
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
+        # self.timer.timeout.connect(self._record)
 
     def update_frame(self):
         ret, self.frame = self.camera.get_frame()
@@ -117,6 +144,6 @@ class StartWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication([])
-    window = StartWindow(0, True)
+    window = StartWindow(0)
     window.show()
     app.exit(app.exec_())

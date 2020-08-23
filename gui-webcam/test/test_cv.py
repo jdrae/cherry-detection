@@ -1,57 +1,45 @@
-'''
-https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
-'''
-
 import numpy as np
 import cv2
-from threading import Thread
+import threading
+import time
 
 cap = cv2.VideoCapture(0)
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
+out = None
 ret = 0
 frame = None
-
-def record():
-	global ret, frame
-	print("recording...")
-	while(cap.isOpened()):
-		if ret==True:
-			out.write(frame)
-			if cv2.waitKey(1) & 0xFF == ord('s'):
-				print("record stopped")
-				break
-		else:
-			break
-	out.release()
+rec = False
 
 def update():
-	global ret, frame
-	print("--start--")
-	while(cap.isOpened()):
-		ret, frame = cap.read()
-		if ret==True:
-			cv2.imshow('frame',frame)
-			if cv2.waitKey(1) & 0xFF == ord('q'):
-				print("--end--")
-				break
-		else:
-			print("--end--")
-			break
+	cv2.imshow('frame',frame)
 
-def printFrame():
-	global ret, frame
+def record():
+	if out is not None:
+		out.write(frame)
+
+while(cap.isOpened()):
+	print(threading.active_count())
+	ret, frame = cap.read()
+	k = cv2.waitKey(1) 
 	if ret:
-		print("frame:",frame[0][0])
+		update()
+		if rec:
+			if out is None:
+				out = cv2.VideoWriter("video-"+time.strftime("%Y%m%d-%H%M%S")+".avi", fourcc, 25.0, (640,480))
+			t1 = threading.Thread(target=record, daemon=True)
+			t1.start()
+		else:
+			if out is not None:
+					out.release()
+					out = None
+			
+		if k & 0xFF == ord('q'):
+			break
+		elif k & 0xFF == ord('r'):
+			rec = False if rec else True
 	else:
-		print("no frame")
-
-t1 = Thread(target=update)
-t2 = Thread(target=printFrame)
-t1.start()
-t2.start()
-
+		break
 
 cap.release()
 cv2.destroyAllWindows()
