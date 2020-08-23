@@ -1,47 +1,105 @@
 from device import Camera
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QLabel, QFrame
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QLabel, QFrame, QFileDialog
 from PyQt5.QtCore import QSize, QRect, Qt, QThread, QTimer
 from PyQt5.QtGui import QPixmap, QImage, QIcon
 
 import sys
 
 class StartWindow(QMainWindow):
-    def __init__(self, yolo=None, cam_num = 0):
+    def __init__(self, cam_num = 0, test=False):
         super().__init__()
-        self.camera = Camera(yolo, cam_num)
-
+        self.camera = Camera(cam_num)
         self.init_gui()
-        self.set_timer()
 
-        self.camera.initialize()
-        self.timer.start(1)
+        if(test == False):
+            self.set_timer()
+            self.camera.initialize()
+            self.timer.start(1)
+
+        # file path
+        self.weights = ""
+        self.cfg = ""
+        self.h5 = ""
 
     def init_gui(self):
         # main window settings
-        window_width = 700
-        window_height = 580
+        window_width = 680
+        window_height = 680
         self.resize(window_width, window_height)
         self.setMinimumSize(QSize(window_width,window_height))
         self.setMaximumSize(QSize(window_width,window_height))
-        self.setWindowTitle("yolo detection")
-        # self.setWindowIcon(QIcon("icon.png"))
+        self.setWindowTitle("gmmpg - zucchini")
+        self.setWindowIcon(QIcon("icon.png"))
 
         self.centralWidget = QWidget(self)
         self.centralWidget.resize(window_width,window_height)
 
+        # load files
+        self.label_w = QLabel("weights",self.centralWidget)
+        self.label_w.setGeometry(20,20, 100,30)
+        self.path_w = QLabel("select file then click \"start\" button", self.centralWidget)
+        self.path_w.setGeometry(120,20,420,30)
+        self.btn_w = QPushButton("select",self.centralWidget)
+        self.btn_w.setGeometry(QRect(560, 20, 100, 30))
+        self.btn_w.clicked.connect(lambda: self.select_file("weights"))
+
+        
+        self.label_c = QLabel("config",self.centralWidget)
+        self.label_c.setGeometry(20,60, 100,30)
+        self.path_c = QLabel("select file then click \"start\" button", self.centralWidget)
+        self.path_c.setGeometry(120,60,420,30)
+        self.btn_c = QPushButton("select",self.centralWidget)
+        self.btn_c.setGeometry(QRect(560, 60, 100, 30))
+        self.btn_c.clicked.connect(lambda: self.select_file("cfg"))
+
+        
+        self.label_m = QLabel("model",self.centralWidget)
+        self.label_m.setGeometry(20,100, 100,30)
+        self.path_m = QLabel("select file then click \"start\" button", self.centralWidget)
+        self.path_m.setGeometry(120,100,420,30)
+        self.btn_m = QPushButton("select",self.centralWidget)
+        self.btn_m.setGeometry(QRect(560, 100, 100, 30))
+        self.btn_m.clicked.connect(lambda: self.select_file("h5"))
+
         # webcam widget
         self.label_img = QLabel(self.centralWidget)
-        self.label_img.setGeometry(QRect(30, 50, 640, 480))
+        self.label_img.setGeometry(QRect(20, 140, 640, 480))
         self.label_img.setFrameShape(QFrame.Box)
         self.label_img.setText("Loading...")
 
         # buttons
+        self.btn_start = QPushButton("start",self.centralWidget)
+        self.btn_start.setGeometry(QRect(20, 630, 100, 30))
+        self.btn_start.clicked.connect(self.start_detect)
         self.btn_capture = QPushButton("capture",self.centralWidget)
-        self.btn_capture.setGeometry(QRect(240, 540, 100, 30))
+        self.btn_capture.setGeometry(QRect(450, 630, 100, 30))
+        self.btn_capture.clicked.connect(self.capture)
         self.btn_record = QPushButton("record",self.centralWidget)
-        self.btn_record.setGeometry(QRect(360, 540, 100, 30))
+        self.btn_record.setGeometry(QRect(560, 630, 100, 30))
+        self.btn_record.clicked.connect(self.record)
 
+    def select_file(self, ext):
+        fname = QFileDialog.getOpenFileName(self, 'Open file', './', '*.'+ext)
+        if fname[0]:
+            if(ext == "h5"):
+                self.h5 = fname[0]
+                self.path_m.setText(self.h5)
+            elif(ext == "weights"):
+                self.weights = fname[0]
+                self.path_w.setText(self.weights)
+            elif(ext == "cfg"):
+                self.cfg = fname[0]
+                self.path_c.setText(self.cfg)
+
+    def start_detect(self):
+        print("det")
+
+    def record(self):
+        print("rec")
+    
+    def capture(self):
+        print("cap")
 
     def set_timer(self):
         # timer to update frame
@@ -65,6 +123,6 @@ class StartWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication([])
-    window = StartWindow()
+    window = StartWindow(0, True)
     window.show()
     app.exit(app.exec_())

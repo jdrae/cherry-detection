@@ -23,17 +23,9 @@ if gpus:
   except RuntimeError as e:
     print(e)
 
-# yolo settings
-from yolov3.myyolov3 import Create_Yolo
-from yolov3.utils import load_yolo_weights, detect_realtime
-from yolov3.myconfigs import *
-
-Darknet_weights = YOLO_V3_WEIGHTS
-yolo = Create_Yolo(input_size=YOLO_INPUT_SIZE)
-load_yolo_weights(yolo, Darknet_weights)
 
 # start gui application
 app = QApplication([])
-start_window = StartWindow(yolo, 0)
+start_window = StartWindow(0) # 첫번째 웹캠 사용
 start_window.show()
 app.exit(app.exec_())
