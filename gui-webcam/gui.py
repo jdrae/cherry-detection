@@ -74,10 +74,10 @@ class StartWindow(QMainWindow):
         self.btn_start.clicked.connect(self.start_detect)
         self.btn_capture = QPushButton("capture",self.centralWidget)
         self.btn_capture.setGeometry(QRect(450, 630, 100, 30))
-        self.btn_capture.clicked.connect(self.capture)
+        self.btn_capture.clicked.connect(self.camera.capture)
         self.btn_record = QPushButton("record",self.centralWidget)
         self.btn_record.setGeometry(QRect(560, 630, 100, 30))
-        self.btn_record.clicked.connect(self.record)
+        self.btn_record.clicked.connect(self.camera.record)
 
     def select_file(self, ext):
         fname = QFileDialog.getOpenFileName(self, 'Open file', './', '*.'+ext)
@@ -94,12 +94,6 @@ class StartWindow(QMainWindow):
 
     def start_detect(self):
         print("det")
-
-    def record(self):
-        print("rec")
-    
-    def capture(self):
-        print("cap")
 
     def set_timer(self):
         # timer to update frame
