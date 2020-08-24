@@ -5,15 +5,13 @@ import time
 import os
 import threading
 
-from detect import detect_zucchini
-
 class Camera:
     def __init__(self, cam_num=0):
         self.cam_num = cam_num
         self.cap = None
         self.frame = None
 
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.fourcc = cv2.VideoWriter_fourcc(*'DIVX')
         self.out = None
         self.rec= False
 
@@ -27,8 +25,6 @@ class Camera:
         self.ret, self.frame = self.cap.read()
         if self.ret:
             cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB, self.frame)
-            if self.detect == True:
-                self.frame = detect_zucchini(self.frame)
             return (self.ret,self.frame)
         else:
             return (self.ret, None)
@@ -45,12 +41,12 @@ class Camera:
         if self.out is None:
             self.out = cv2.VideoWriter("record\\video-"+time.strftime("%Y%m%d-%H%M%S")+".avi", self.fourcc, 25.0, (640,480))
 
-    def record(self):
+    def record(self, frame):
         if self.cap is None:
             print("camera is not opened")
             return
         if self.out is not None:
-            self.out.write(self.frame)
+            self.out.write(frame)
 
     def capture(self):
         if self.cap is None:
@@ -78,7 +74,7 @@ if __name__ == '__main__':
 
             if cam.rec:
                 cam.setOut()
-                t1 = threading.Thread(target=cam.record, daemon=True)
+                t1 = threading.Thread(target=cam.record, args=(frame,), daemon=True)
                 t1.start()
             else:
                 if cam.out is not None:

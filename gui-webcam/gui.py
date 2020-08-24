@@ -1,4 +1,5 @@
 from device import Camera
+from detect import Zucchini
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QLabel, QFrame, QFileDialog
 from PyQt5.QtCore import QSize, QRect, Qt, QThread, QTimer
@@ -7,11 +8,6 @@ from PyQt5.QtGui import QPixmap, QImage, QIcon
 import sys
 
 import threading
-
-WEIGHTS = ""
-CFG = ""
-H5 = ""
-
 
 class StartWindow(QMainWindow):
     def __init__(self, cam_num = 0, test=False):
@@ -28,6 +24,9 @@ class StartWindow(QMainWindow):
         self.weights = ""
         self.cfg = ""
         self.h5 = ""
+
+        # zuc detection
+        self.zuc = Zucchini()
 
     def init_gui(self):
         # main window settings
@@ -100,42 +99,46 @@ class StartWindow(QMainWindow):
                 self.path_c.setText(self.cfg)
 
     def start_detect(self):
-        print("det")
-        WEIGHTS = self.weights
-        CFG = self.cfg
-        H5 = self.h5
-        self.camera.detect = True
+        print("detection started")
+        self.zuc.initialize(WEIGHTS=self.weights, CFG=self.cfg, H5=self.h5)
+        self.timer.timeout.connect(self._detect)
+
+    def _detect(self):
+        t1 = threading.Thread(target=self.zuc.detect_zucchini, args=(self.frame, ), daemon=True)
+        t1.start()
+
 
     def record(self):
-        print("rec")
-        '''
-        [mpeg4 @ 000001c87838ac80] Invalid pts (4) <= last (4)
-        
-        https://github.com/PyAV-Org/PyAV/issues/202
-
         self.camera.rec = False if self.camera.rec else True
         print("recording...") if self.camera.rec else print("record stop")
         text = "stop" if self.camera.rec else "record"
         self.btn_record.setText(text)
-        
+        '''
         if self.camera.rec:
             self.camera.setOut()
+            self.timer.timeout.connect(self._record)
+
         else:
             if self.camera.out is not None:
                 self.camera.out.release()
                 self.camera.out = None
+
+        
+        [mpeg4 @ 000001c87838ac80] Invalid pts (4) <= last (4)
+        
+        https://github.com/PyAV-Org/PyAV/issues/202
         '''
 
     def _record(self):
+        print(".",end="")
         if self.camera.rec:
-            t1 = threading.Thread(target=self.camera.record, daemon=True)
+            t1 = threading.Thread(target=self.camera.record, args=(self.frame, ), daemon=True)
             t1.start()
 
     def set_timer(self):
         # timer to update frame
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
-        # self.timer.timeout.connect(self._record)
 
     def update_frame(self):
         ret, self.frame = self.camera.get_frame()

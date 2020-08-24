@@ -1,50 +1,56 @@
 import numpy as np
 import cv2
 
-from gui import WEIGHTS, CFG, H5
+class Zucchini():
+    def __init__(self):
+        pass
 
-print(WEIGHTS, CFG, H5)
+    def initialize(self,WEIGHTS="", CFG="", H5=""):
+        self.weights = WEIGHTS
+        self.cfg = CFG
+        self.h5 = H5
+        print("--WEIGHTS:", self.weights.split(sep="/")[-1])
+        print("--CFG:", self.cfg.split(sep="/")[-1])
+        print("--H5:",self.h5.split(sep="/")[-1])
+        
+        if(self.weights=="" and self.cfg==""):
+            print("ERR: select correct files")
+            return
+        self.net = cv2.dnn.readNet(self.weights, self.cfg)
+        self.layer_names = self.net.getLayerNames()
+        self.output_layers = [self.layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
+        self.min_confidence = 0.5
+        self.className = "zucchini"
+        self.color = (100, 0, 100)
+        self.font = cv2.FONT_HERSHEY_PLAIN
+        self.width = 0
+        self.height = 0
 
-# yolo settings
-if WEIGHTS != '' and CFG != '':
-    net = cv2.dnn.readNet(WEIGHTS, CFG)
+    def detect_zucchini(self, frame):
+        print("detect...")
+        blob = cv2.dnn.blobFromImage(frame, 0.00392, (416, 416), swapRB=True, crop=False)
+        self.net.setInput(blob)
+        outs = self.net.forward(self.output_layers)
 
-layer_names = net.getLayerNames()
-output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+        for out in outs:
+            for detection in out:
+                scores = detection[5:]
+                class_id = np.argmax(scores)
+                confidence = scores[class_id]
+                if confidence > self.min_confidence:
+                    self.center_x = int(detection[0] * width)
+                    self.center_y = int(detection[1] * height)
+                    self.w = int(detection[2] * width)
+                    self.h = int(detection[3] * height)
 
-min_confidence = 0.5
+                    x = int(center_x - w / 2)
+                    y = int(center_y - h / 2)
 
-className = "zucchini"
-color = (100, 0, 100)
-font = cv2.FONT_HERSHEY_PLAIN
-width = 0
-height = 0
+                    self.label = '{} {:,.2%}'.format(className, confidence)
 
-def detect_zucchini(frame):
-    print("detect...")
-    blob = cv2.dnn.blobFromImage(frame, 0.00392, (416, 416), swapRB=True, crop=False)
-    net.setInput(blob)
-    outs = net.forward(output_layers)
-
-    for out in outs:
-        for detection in out:
-            scores = detection[5:]
-            class_id = np.argmax(scores)
-            confidence = scores[class_id]
-            if confidence > min_confidence:
-                center_x = int(detection[0] * width)
-                center_y = int(detection[1] * height)
-                w = int(detection[2] * width)
-                h = int(detection[3] * height)
-
-                x = int(center_x - w / 2)
-                y = int(center_y - h / 2)
-
-                label = '{} {:,.2%}'.format(className, confidence)
-
-                cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-                cv2.putText(frame, label, (x, y - 10), font, 1, color, 2)
-    return frame
+                    self.cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+                    self.self.cv2.putText(frame, label, (x, y - 10), font, 1, color, 2)
+        return frame
 
 
 if __name__ == '__main__':
@@ -55,14 +61,16 @@ if __name__ == '__main__':
     
     width = int(vs.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(vs.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
+    zuc = Zucchini()
+    zuc.initialize(WEIGHTS="zuc/zuc.weights",CFG="zuc/zuc.cfg")
     while True:
         ret, frame = vs.read()
         if frame is None:
             print('No frame')
             vs.release()
             break
-        cv2.imshow('', detect_zucchini(frame))
+
+        cv2.imshow('', zuc.detect_zucchini(frame))
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
